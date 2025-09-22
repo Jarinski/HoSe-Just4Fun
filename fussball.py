@@ -71,10 +71,9 @@ def main():
         
         quick_questions = [
             "Wer ist der beste Torschütze?",
-            "Welches Trio gewinnt am häufigsten?", 
-            "Wer trifft in der Nachspielzeit?",
-            "Zeitintervall-Analysen zeigen",
-            "Mit wem gewinnt Jari am besten?",
+            "Wer trifft in der ersten Halbzeit am häugisten",
+            "Wer hat die meisten Vorlagen gemacht",
+            "Mit wem gewinnt Jari am häufigsten?",
             "Alle Top-Scorer und Assisters"
         ]
         
