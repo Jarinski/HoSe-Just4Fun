@@ -6,8 +6,6 @@ import anthropic
 import json
 import re
 
-# API Key
-API_KEY = "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"
 
 class SmartFootballAnalyzer:
     def __init__(self):
@@ -851,4 +849,5 @@ def main():
     analyzer.chat()
 
 if __name__ == "__main__":
+
     main()
