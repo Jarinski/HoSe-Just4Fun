@@ -5,11 +5,9 @@ import pandas as pd
 import anthropic
 import json
 import re
-from Statistik import SmartFootballAnalyzer
-
-# API Key
 import streamlit as st
 import os
+from Statistik import SmartFootballAnalyzer
 
 API_KEY = st.secrets.get("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
 
