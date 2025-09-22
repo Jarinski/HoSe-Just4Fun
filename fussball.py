@@ -4,7 +4,7 @@
 import streamlit as st
 import pandas as pd
 import anthropic
-from Statistik import SmartFootballAnalyzer
+from smart_football_llm import SmartFootballAnalyzer
 
 @st.cache_resource
 def load_analyzer():
@@ -71,9 +71,10 @@ def main():
         
         quick_questions = [
             "Wer ist der beste Torschütze?",
-            "Wer trifft in der ersten Halbzeit am häugisten",
-            "Wer hat die meisten Vorlagen gemacht",
-            "Mit wem gewinnt Jari am häufigsten?",
+            "Welches Trio gewinnt am häufigsten?", 
+            "Wer trifft in der Nachspielzeit?",
+            "Zeitintervall-Analysen zeigen",
+            "Mit wem gewinnt Jari am besten?",
             "Alle Top-Scorer und Assisters"
         ]
         
