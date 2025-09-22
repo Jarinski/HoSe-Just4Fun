@@ -5,6 +5,7 @@ import pandas as pd
 import anthropic
 import json
 import re
+from Statistik import SmartFootballAnalyzer
 
 # API Key
 import streamlit as st
@@ -112,12 +113,16 @@ class SmartFootballAnalyzer:
                 except (ValueError, SyntaxError, TypeError):
                     continue
         
-        # Sortiere für jedes Intervall
+        # Sortiere für jedes Intervall - TYPE-SAFE
         sorted_intervals = {}
         for interval, goals in interval_goals.items():
-            sorted_intervals[interval] = sorted(goals.items(), 
-                                              key=lambda x: x[1], 
-                                              reverse=True)[:10]
+            # Filtere nur valide Einträge (string keys, numeric values)
+            valid_goals = []
+            for player, goal_count in goals.items():
+                if isinstance(player, str) and isinstance(goal_count, (int, float)) and not pd.isna(goal_count):
+                    valid_goals.append((player, int(goal_count)))
+            
+            sorted_intervals[interval] = sorted(valid_goals, key=lambda x: x[1], reverse=True)[:10]
         
         # Gesamtstatistiken
         total_stats = {}
@@ -171,7 +176,7 @@ class SmartFootballAnalyzer:
                 except (ValueError, SyntaxError, TypeError):
                     continue
         
-        # Organisiere Ergebnisse
+        # Organisiere Ergebnisse - TYPE-SAFE
         result = {
             'last_10_min': {},
             'last_5_min': {},
@@ -187,11 +192,13 @@ class SmartFootballAnalyzer:
                 if category in result:
                     result[category][player_name] = count
         
-        # Sortiere nach Häufigkeit
+        # Sortiere nach Häufigkeit - TYPE-SAFE
         for category in result:
-            result[category] = sorted(result[category].items(), 
-                                    key=lambda x: x[1], 
-                                    reverse=True)[:10]
+            valid_items = []
+            for player, count in result[category].items():
+                if isinstance(player, str) and isinstance(count, (int, float)) and not pd.isna(count):
+                    valid_items.append((player, int(count)))
+            result[category] = sorted(valid_items, key=lambda x: x[1], reverse=True)[:10]
         
         return {
             "late_game_analysis": result,
@@ -253,13 +260,14 @@ class SmartFootballAnalyzer:
                 except (ValueError, SyntaxError, TypeError):
                     continue
         
-        # Sortiere nach Häufigkeit
+        # Sortiere nach Häufigkeit - TYPE-SAFE
         result = {}
         for timeframe, teammate_goals in teammate_timeframe_goals.items():
-            sorted_teammates = sorted(teammate_goals.items(), 
-                                    key=lambda x: x[1], 
-                                    reverse=True)
-            result[timeframe] = sorted_teammates[:10]  # Top 10
+            valid_teammates = []
+            for teammate, goals in teammate_goals.items():
+                if isinstance(teammate, str) and isinstance(goals, (int, float)) and not pd.isna(goals):
+                    valid_teammates.append((teammate, int(goals)))
+            result[timeframe] = sorted(valid_teammates, key=lambda x: x[1], reverse=True)[:10]
         
         return {
             "player": player_name,
@@ -307,18 +315,19 @@ class SmartFootballAnalyzer:
                     'players': list(trio)
                 }
         
-        # Sortiere nach Siegrate
-        best_trios = sorted(processed_trios.items(), 
-                           key=lambda x: (x[1]['win_rate'], x[1]['games']), 
-                           reverse=True)
+        # Sortiere nach Siegrate - TYPE-SAFE
+        valid_trios = []
+        for trio, data in processed_trios.items():
+            if isinstance(data.get('win_rate'), (int, float)) and isinstance(data.get('games'), (int, float)):
+                valid_trios.append((trio, data))
+        
+        best_trios = sorted(valid_trios, key=lambda x: (x[1]['win_rate'], x[1]['games']), reverse=True)
         
         return {
             "total_trios_found": len(processed_trios),
             "min_games_threshold": min_games,
             "best_trios": best_trios[:15],  # Top 15 Trios
-            "top_by_games": sorted(processed_trios.items(), 
-                                 key=lambda x: x[1]['games'], 
-                                 reverse=True)[:10]
+            "top_by_games": sorted(valid_trios, key=lambda x: x[1]['games'], reverse=True)[:10]
         }
 
     def get_quartet_stats(self, min_games=3):
@@ -359,9 +368,13 @@ class SmartFootballAnalyzer:
                     'players': list(quartet)
                 }
         
-        best_quartets = sorted(processed_quartets.items(), 
-                              key=lambda x: (x[1]['win_rate'], x[1]['games']), 
-                              reverse=True)
+        # TYPE-SAFE sorting
+        valid_quartets = []
+        for quartet, data in processed_quartets.items():
+            if isinstance(data.get('win_rate'), (int, float)) and isinstance(data.get('games'), (int, float)):
+                valid_quartets.append((quartet, data))
+        
+        best_quartets = sorted(valid_quartets, key=lambda x: (x[1]['win_rate'], x[1]['games']), reverse=True)
         
         return {
             "total_quartets_found": len(processed_quartets),
@@ -397,10 +410,10 @@ class SmartFootballAnalyzer:
                         teammate_goals[teammate] = 0
                     teammate_goals[teammate] += goals_count
         
-        # Sortiere sicher
+        # Sortiere sicher - TYPE-SAFE
         sorted_goals = []
         for teammate, goals in teammate_goals.items():
-            if isinstance(goals, (int, float)) and not pd.isna(goals):
+            if isinstance(teammate, str) and isinstance(goals, (int, float)) and not pd.isna(goals):
                 sorted_goals.append((teammate, int(goals)))
         
         sorted_goals.sort(key=lambda x: x[1], reverse=True)
@@ -440,10 +453,10 @@ class SmartFootballAnalyzer:
                         teammate_assists[teammate] = 0
                     teammate_assists[teammate] += assists_count
         
-        # Sortiere sicher (nur numerische Werte)
+        # Sortiere sicher - TYPE-SAFE
         sorted_assists = []
         for teammate, assists in teammate_assists.items():
-            if isinstance(assists, (int, float)) and not pd.isna(assists):
+            if isinstance(teammate, str) and isinstance(assists, (int, float)) and not pd.isna(assists):
                 sorted_assists.append((teammate, int(assists)))
         
         sorted_assists.sort(key=lambda x: x[1], reverse=True)
@@ -503,9 +516,10 @@ class SmartFootballAnalyzer:
                     'loss_rate': round(stats['losses'] / stats['games'] * 100, 1)
                 }
         
-        # Sortierungen
-        by_win_rate = sorted(processed_stats.items(), key=lambda x: x[1]['win_rate'], reverse=True)
-        by_games = sorted(processed_stats.items(), key=lambda x: x[1]['games'], reverse=True)
+        # Sortierungen - TYPE-SAFE
+        valid_stats = [(k, v) for k, v in processed_stats.items() if isinstance(v.get('win_rate'), (int, float))]
+        by_win_rate = sorted(valid_stats, key=lambda x: x[1]['win_rate'], reverse=True)
+        by_games = sorted(valid_stats, key=lambda x: x[1]['games'], reverse=True)
         
         return {
             "player": player_name,
@@ -565,8 +579,9 @@ class SmartFootballAnalyzer:
                 if teammate_name != player_name:
                     teammates[teammate_name] = teammates.get(teammate_name, 0) + 1
         
-        # Top 10 häufigste Mitspieler
-        top_teammates = sorted(teammates.items(), key=lambda x: x[1], reverse=True)[:10]
+        # Top 10 häufigste Mitspieler - TYPE-SAFE
+        valid_teammates = [(k, v) for k, v in teammates.items() if isinstance(k, str) and isinstance(v, (int, float))]
+        top_teammates = sorted(valid_teammates, key=lambda x: x[1], reverse=True)[:10]
         stats["frequent_teammates"] = top_teammates
         
         return stats
