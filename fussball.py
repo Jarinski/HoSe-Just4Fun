@@ -4,7 +4,7 @@
 import streamlit as st
 import pandas as pd
 import anthropic
-from smart_football_llm import SmartFootballAnalyzer
+from Statistik import SmartFootballAnalyzer
 
 @st.cache_resource
 def load_analyzer():
