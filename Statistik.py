@@ -5,7 +5,10 @@ import pandas as pd
 import anthropic
 import json
 import re
+import streamlit as st
+import os
 
+API_KEY = st.secrets.get("ANTHROPIC_API_KEY") or os.getenv("ANTHROPIC_API_KEY")
 
 class SmartFootballAnalyzer:
     def __init__(self):
@@ -851,3 +854,4 @@ def main():
 if __name__ == "__main__":
 
     main()
+
